@@ -9,6 +9,7 @@ Version 1.4: MIT Lizenz ergänzt, Speicherordner von "Apps/Modelle/" auf "Apps/N
 Die App kann auch sehr gut dazu verwendet werden um sich die Einstellungen eines Flybareless Systems,
 welches keine Jeti Integration besitzt,
 anzeigen zu lassen:
+Im Ordner Notizbuch finden sich Beispieldateien die man verwenden kann.
 
 ![TDF-1](https://github.com/ribid1/Notizbuch/blob/main/Notizbuch-img/TDF-1.png)
 ![TDF-2](https://github.com/ribid1/Notizbuch/blob/main/Notizbuch-img/TDF-2.png)
