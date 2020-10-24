@@ -10,5 +10,7 @@ Die App kann auch sehr gut dazu verwendet werden um sich die Einstellungen eines
 welches keine Jeti Integration besitzt,
 anzeigen zu lassen:
 
-![TDF](https://github.com/ribid1/Notizbuch/blob/master/Notizbuch-img/TDF.pgn)  
-![T-Rex](https://github.com/ribid1/Notizbuch/blob/master/Notizbuch-img/T-Rex.pgn)  
+![TDF-1](https://github.com/ribid1/Notizbuch/blob/master/Notizbuch-img/TDF1.pgn)  
+![TDF-2](https://github.com/ribid1/Notizbuch/blob/master/Notizbuch-img/TDF2.pgn)  
+![T-Rex-1](https://github.com/ribid1/Notizbuch/blob/master/Notizbuch-img/T-Rex1.pgn)  
+![T-Rex-2](https://github.com/ribid1/Notizbuch/blob/master/Notizbuch-img/T-Rex2.pgn)  
