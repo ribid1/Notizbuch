@@ -11,6 +11,8 @@ welches keine Jeti Integration besitzt,
 anzeigen zu lassen:
 
 ![TDF-1](https://github.com/ribid1/Notizbuch/blob/main/Notizbuch-img/TDF-1.png)  
-![TDF-2](https://github.com/ribid1/Notizbuch/blob/main/Notizbuch-img/TDF-2.png)  
+![TDF-2](https://github.com/ribid1/Notizbuch/blob/main/Notizbuch-img/TDF-2.png) 
+![TDF-3](https://github.com/ribid1/Notizbuch/blob/main/Notizbuch-img/TDF-3.png) 
 ![T-Rex-1](https://github.com/ribid1/Notizbuch/blob/main/Notizbuch-img/T-Rex-1.png)  
 ![T-Rex-2](https://github.com/ribid1/Notizbuch/blob/main/Notizbuch-img/T-Rex-2.png)  
+![T-Rex-2](https://github.com/ribid1/Notizbuch/blob/main/Notizbuch-img/T-Rex-3.png) 
