@@ -1,0 +1,6 @@
+10 9
+4 3
+"Fahrwerk" "SJ" "m trocken" "7885" "Klappen" "5" "m nass" "9325" "Flugphase" "SB" "s trocken" "-5.3" "Turbine" "SG" "s nass" "22" "Spannungsabfall" "0.6V" "Beutel" "1.8l" "Pumpenfaktor" "275" "" "" "Turbinenakku" "3200" "" "" "Empf[195][164]ngerakku" "1800" "" "" "zuerst re. Fl[195][164]che" "" "" "" "" "" "" "" "QR re" "-17.0" "17.0" "QR li" "-17.0" "17.0" "Seite" "-25" "25" "H[195][182]he" "-18.0" "18.0" "Klappen" "-23" "-61" "" "" "" "" "" "" "" "" "" "" "" ""
+1 1
+1 1
+1 1

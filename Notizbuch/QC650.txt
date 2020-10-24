@@ -1,0 +1,6 @@
+10 10
+2 2
+"SJ" "GPS-Manuel-Attitude" "SI" "Return home" "SB" "Lock aus-Home lock-Course lock" "SE" "Vario aus-Vario aktiv" "SF" "Aufnahme gestoppt-Aufnahme" "5" "Kamera tilt" "trim 2" "Nick-Tilt bei Manuel" "trim 4" "Nick-Tilt bei GPS u. Attitude" "6" "Zoom" "" "" "trim 3li" "Vario" "trim 3re" "H[195][182]he" "SA" "Flugphasenansage" "trim 1" "X1" "" "" "" "" "" "" "" "" "" "" "" ""
+1 1
+1 1
+0 0

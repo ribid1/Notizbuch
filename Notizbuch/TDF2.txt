@@ -1,0 +1,6 @@
+9 10
+2 2
+"spezifische Drehzahl U/V:" "450" "Polzahl" "10" "z Ritzel" "" "z Hauptzahnrad" "" "z Freilauf" "" "z Heck" "" "Motor:Hauptrotor" "9.270" "Heck:Hauptrotor" "5.56" "20.5.19" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+1 1
+1 1
+1 1
