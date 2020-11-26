@@ -45,432 +45,38 @@
 	Version 1.2: Aufteilung der Eingabefelder auf mehrere Spalten und Anpassung der Spaltenbreite auf das breiteste Feld
 	Version 1.3: Speichern und Laden vereinfacht
 	Version 1.4: MIT Lizenz ergänzt, Speicherordner von "Apps/Modelle/" auf "Apps/Notizbuch/" geändert.
+	Version 1.5: Zur besseren Les- und Editierbarkeit mittels Texteditor werden die Daten und Einstellungen nun als JSN Datei abgespeichert.
+				 Dies geschieht nun automatisch nach jeder Änderung der Daten oder Einstellungen, und der Dateiname wird wie folgt vergeben: Modellname_NB-appNumber.JSN
+				 Die appNumber kann untenstehend geändert werden und muss dem Dateinamen der App entsprechen, z.Bsp: bei Notizbuch7.lua muss die appNumber = 7 sein.
+				 Es können sowohl die neuen JSN Dateien als auch die alten txt Dateien geladen werden.
 	
 	https://github.com/ribid1/Notizbuch
 
 --]]--------------------------------------------------------------------------------
-
-
-local model, config, pages, rows, columns, fonts, frames, aligns, texts, formID, timeB4, timeB5, Eingabespalten, neuerName
+local appNumber = "1"     -- Hier die Nummer antsprechend des Dateinamens abändern
+local model, config, pages, formID, timeB4, timeB5, neuerName
 local windows = 2
 local fontOptions = {"Mini", "Normal", "Bold", "Maxi"}
 local fontConstants = {FONT_MINI, FONT_NORMAL, FONT_BOLD, FONT_MAXI}
 local frameForms = {}
 local alignForms = {}
+local configs = {}
+local texts =  {}
+local rows = {}
+local columns = {}
+local fonts = {}
+local frames = {}
+local aligns = {}
+local Eingabespalten = {}
 local defaultNumber = 0
 local defaultText = ""
 local folder = "Apps/Notizbuch/"
 local Ordner = "Apps/Notizbuch"
 local extension = ".txt"
-local version = "1.4"
+local appName = "Notizbuch "..appNumber
+local version = "1.6"
 
 --------------------------------------------------------------------------------
-local function showPage(window)
-	local r,g,b   = lcd.getBgColor()
-	local startX  = 0
-	local startY  = 1
-	local offset  = 0
-	local border  = 2
-	local font    = fontConstants[fonts[window]]
-	local height  = lcd.getTextHeight(font, "|") + border*2
-	local rows    = rows[window]
-	local columns = columns[window]
-	local texts   = texts[window]
-	
-
-	if (r+g+b)/3 > 128 then
-	    r,g,b = 0,0,0
-	else
-	    r,g,b = 255,255,255
-	end
-
-	lcd.setColor(r,g,b)
-
-	for j=1, columns do
-		local width = 0
-
-		for i=1, rows do
-			local currentWidth = lcd.getTextWidth(font, texts[i][j]) + border*2
-			if (width < currentWidth) then
-				width = currentWidth
-			end
-		end
-
-		if (j > 1) then
-			local x = startX+offset
-			if (frames[window]) then
-				lcd.drawLine(x, startY, x, startY+height*rows)
-			end
-		end
-
-		for i=1, rows do
-			local text  = texts[i][j]
-			local shift = 0
-			if (aligns[window] and tonumber(text)) then
-				shift = width - lcd.getTextWidth(font, text) - 3
-			end
-			lcd.drawText(startX+offset+border+shift, startY+height*(i-1)+border, text, font)
-		end
-
-		offset = offset + width
-	end
-
-	for i=1, rows do
-		if (i > 1) then
-			local y = startY+height*(i-1)
-			if (frames[window]) then
-				lcd.drawLine(startX, y, startX+offset, y)
-			end
-		end
-	end
-
-	if (frames[window]) then
-		lcd.drawRectangle(startX, startY, offset+1, height*rows+1)
-	end
-end
-
----------------------------------------------------------------------------------
-local function showPage1()
-	return showPage(1)
-end
-
----------------------------------------------------------------------------------
-local function showPage2()
-	return showPage(2)
-end
-
----------------------------------------------------------------------------------
-local function setupForm1()
-	for w=1, windows do
-		form.addRow(1)
-		form.addLabel({label = "Fenster "..w, font=FONT_BOLD})
-
-		form.addRow(2)
-		form.addLabel({label = "Zeilen", width=200})
-		form.addIntbox(rows[w], 1, 10, 2, 0, 1, function(value)
-			if (rows[w] < value) then
-				for i=rows[w]+1, value do
-					texts[w][i] = {}
-					for j=1, columns[w] do
-						texts[w][i][j] = defaultText
-						system.pSave("text."..w.."."..i.."."..j, defaultText)
-					end
-				end
-			else
-				for i=value+1, rows[w] do
-					texts[w][i] = nil
-					for j=1, columns[w] do
-						system.pSave("text."..w.."."..i.."."..j, nil)
-					end
-				end
-			end
-
-			rows[w] = value
-			system.pSave("row."..w, value)
-		end)
-
-		form.addRow(2)
-		form.addLabel({label = "Spalten", width=200})
-		form.addIntbox(columns[w], 1, 10, 2, 0, 1, function(value)
-			if (columns[w] < value) then
-				for i=1, rows[w] do
-					for j=columns[w]+1, value do
-						texts[w][i][j] = defaultText
-						system.pSave("text."..w.."."..i.."."..j, defaultText)
-					end
-				end
-			else
-				for i=1, rows[w] do
-					for j=value+1, columns[w] do
-						texts[w][i][j] = nil
-						system.pSave("text."..w.."."..i.."."..j, nil)
-					end
-				end
-			end
-
-			columns[w] = value
-			system.pSave("column."..w, value)
-			if value < Eingabespalten[w] then  
-				Eingabespalten[w] = value
-				system.pSave("Eingabespalte."..w, value)
-			end
-			
-		end)
-		
-		form.addRow(2)
-		form.addLabel({label = "Eingabespalten:", width=200})
-		
-		form.addIntbox(Eingabespalten[w],1,8,1,0,1, function(value)
-			if value > columns[w] then  value = columns[w] end
-			Eingabespalten[w] = value
-			system.pSave("Eingabespalte."..w, value)
-		end)
-		
-		form.addRow(2)
-		form.addLabel({label = "Schriftart", width=200})
-		form.addSelectbox(fontOptions, fonts[w], false, function(value)
-			fonts[w] = value
-			system.pSave("font."..w, value)
-		end)
-
-		form.addRow(2)
-		form.addLabel({label = "Umrandung", width=275})
-		frameForms[w] = form.addCheckbox(frames[w], function(value)
-			 frames[w] = not value
-			 system.pSave("frame."..w, not value and 1 or 0)
-			 form.setValue(frameForms[w], not value)
-		end)
-
-		form.addRow(2)
-		form.addLabel({label = "Rechtsbündige Zahlen", width=275})
-		alignForms[w] = form.addCheckbox(aligns[w], function(value)
-			 aligns[w] = not value
-			 system.pSave("align."..w, not value and 1 or 0)
-			 form.setValue(alignForms[w], not value)
-		end)
-
-		form.addSpacer(1, 7)
-	end
-
-	form.addRow(1)
-	form.addLabel({label = "Speichern / Laden", font=FONT_BOLD})
-	local dateinamen = {}
-	dateinamen[1]=""
-	for name, filetype, size in dir(Ordner) do
-		if filetype == "file" then table.insert(dateinamen, name) end
-	end
-
-	form.addRow(2)
-	form.addLabel({label = "Name", width=200})
-	form.addSelectbox(dateinamen,1,false, function(value)
-		config = dateinamen[value]
-		system.pSave("config", value)
-		form.setButton(4, "S", config:len() > 0 and ENABLED or DISABLED)
-		form.setButton(5, "L", config:len() > 0 and ENABLED or DISABLED)
-	end)
-	neuerName=""
-	form.addRow(2)
-	form.addLabel({label = "Neuer Name", width=200})
-	form.addTextbox(neuerName, 63, function(value)
-		neuerName = value..extension
-		system.pSave("neuerName", value)
-		form.setButton(4, "S", value:len() > 0 and ENABLED or DISABLED)
-		form.setButton(5, "L", value:len() > 0 and ENABLED or DISABLED)
-	end)
-	form.addRow(1)
-	form.addLabel({label="Um von Zahl auf Text zu wechseln -10000 eingeben!", font=FONT_MINI, alignRight=true})
-	form.addRow(1)
-	form.addLabel({label="Powered by Thorn, edit by dit71 - v."..version, font=FONT_MINI, alignRight=true})
-end
-
----------------------------------------------------------------------------------
-local function setupFormTable(window)
-	local rows = rows[window]
-	local columns = columns[window]
-	local texts = texts[window]
-	local types = {"Text", "Zahl"}
-	local Eingabespalten = Eingabespalten[window]
-	local font    = fontConstants[fonts[window]]
-	local maxBreite = {}
-	local maxBreiteEingabe = {}
-	local sortmaxBreite = {}
-	local maxBreiteRest = {}
-	local Breite
-	local minBreiteEingabe = 39.5+5*(8-Eingabespalten)
-	local offsetText = 22
-	-- local offsetInt = 27
-	local fontEingabe = FONT_NORMAL
-	local BSchirm = 316
-	local number
-  local AnzGanzeZeilen
-  local Rest
-	local k, temp
-	
-	-- maximal Breite pro Spalte
-	for j=1, columns do
-		maxBreite[j] = 0
-		for i=1, rows do
-			Breite = lcd.getTextWidth(fontEingabe, texts[i][j])
-			if Breite > maxBreite[j] then maxBreite[j] = Breite end
-		end
-		if maxBreite[j] < 1 then maxBreite[j] = 1 end
-		maxBreite[j] = maxBreite[j] + offsetText
-	end
-	-- maximal Breite pro Eingabespalte		
-	for i = 1, Eingabespalten do
-		maxBreiteEingabe[i] = 0
-		AnzGanzeZeilen = math.floor(columns/Eingabespalten)
-		for j = 1, AnzGanzeZeilen do
-			if (maxBreite[i+(j-1)*Eingabespalten] > maxBreiteEingabe[i]) then maxBreiteEingabe[i] = maxBreite[i+(j-1)*Eingabespalten] end
-		end
-		if maxBreiteEingabe[i] < 1 then maxBreiteEingabe[i] = 1 end
-		maxBreiteEingabe[i] = maxBreiteEingabe[i] + offsetText
-	end
-	
-	-- Hier nun die Breiten aufteilen, Breite = 320 Höhe = 240:
-	
-	local gesamtBreite = 0
-	for _,wert in pairs(maxBreiteEingabe) do
-		gesamtBreite = gesamtBreite + wert
-	end
-	
-	local sortmaxBreiteEingabe = {}
-	
-	for key in pairs(maxBreiteEingabe) do
-		table.insert(sortmaxBreiteEingabe, key)
-	end
-
-	table.sort(sortmaxBreiteEingabe, function(a,b)
-		return maxBreiteEingabe[a] < maxBreiteEingabe[b] end)
-		
-	BSchirm = 316
-	for  _, key in pairs(sortmaxBreiteEingabe) do
-		temp = maxBreiteEingabe[key]
-		maxBreiteEingabe[key]= temp/gesamtBreite*BSchirm
-		if maxBreiteEingabe[key] < minBreiteEingabe then maxBreiteEingabe[key] = minBreiteEingabe end
-		gesamtBreite = gesamtBreite-temp
-		BSchirm = BSchirm - maxBreiteEingabe[key]
-	end
-	
-	Rest= columns-AnzGanzeZeilen*Eingabespalten
-	if Rest > 0 then 
-		gesamtBreite = 0
-		
-		k=0
-		for j=AnzGanzeZeilen*Eingabespalten+1, columns do
-			k=k+1
-			gesamtBreite = gesamtBreite + maxBreite[j]
-			table.insert(sortmaxBreite, k)
-			table.insert(maxBreiteRest, maxBreite[j])
-		end
-
-
-		table.sort(sortmaxBreite, function(a,b)
-			return maxBreiteRest[a] < maxBreiteRest[b] end)
-			
-		BSchirm = 316
-		for  _, key in pairs(sortmaxBreite) do
-			temp = maxBreiteRest[key]
-			maxBreiteRest[key]= temp/gesamtBreite*BSchirm
-			if maxBreiteRest[key] < minBreiteEingabe then maxBreiteRest[key] = minBreiteEingabe end
-			gesamtBreite = gesamtBreite-temp
-			BSchirm = BSchirm - maxBreiteRest[key]
-		end
-	end
-	
-			
-	-- Eingabefelder anzeigen:
-	for i=1, rows do
-		-- if (i > 1) then
-			-- form.addSpacer(1, 7)
-		-- end
-
-		form.addRow(1)
-		form.addLabel({label = "Zeile "..i, font=FONT_BOLD, enabled=false})
-		local row = texts[i]
-		
-		for l=1, AnzGanzeZeilen do
-		--print ("Eingabezeite="..l)
-			form.addRow(Eingabespalten)
-			for k=1,Eingabespalten do
-				local j=((l-1)*Eingabespalten)+k
-				local stellen
-				local isText = true
-				number = tonumber(row[j])
-				if number then
-					stellen = row[j]:len()-((string.find(row[j],".",1,true)) or row[j]:len())
-					number=number*10^stellen
-					if number > -10000 and number < 10000 then
-						isText = false
-						-- if stellen>3then stellen=3 end
-						form.addIntbox(number, -10000, 9999, 0,stellen, 1, function(value)
-							value  = tostring(string.format("%."..stellen.."f",value/10^stellen))
-							row[j] = value
-							system.pSave("text."..window.."."..i.."."..j, value)
-						end, {font=fontEingabe, width=maxBreiteEingabe[k]})
-					end
-				end
-				if isText then
-					form.addTextbox(row[j], 40, function(value)
-						row[j] = value
-						--print ("i="..i.."k="..k.."j="..j)
-						system.pSave("text."..window.."."..i.."."..j, value)
-					end,{font=fontEingabe, width=maxBreiteEingabe[k]})
-				end 
-			end
-		end
-		
-		-- restliche Spalten
-		if Rest > 0 then
-			form.addRow(Rest)
-			for  k=1, #maxBreiteRest do
-				local j=(AnzGanzeZeilen*Eingabespalten)+k
-				local stellen
-				local isText = true
-				number = tonumber(row[j])
-				if number then
-					stellen = row[j]:len()-((string.find(row[j],".",1,true)) or row[j]:len())
-					number=number*10^stellen
-					if number > -10000 and number < 10000 then
-						isText = false
-						-- if stellen>3then stellen=3 end
-						form.addIntbox(number, -10000, 9999, 0,stellen, 1, function(value)
-							value  = tostring(string.format("%."..stellen.."f",value/10^stellen))
-							row[j] = value
-							system.pSave("text."..window.."."..i.."."..j, value)
-						end, {font=fontEingabe, width=maxBreiteEingabe[k]})
-					end
-				end
-				if isText then
-					form.addTextbox(row[j], 40, function(value)
-						row[j] = value
-						--print ("i="..i.."k="..k.."j="..j)
-						system.pSave("text."..window.."."..i.."."..j, value)
-					end,{font=fontEingabe, width=maxBreiteEingabe[k]})
-				end 
-			end
-		end
-			
-
-	end
-end
-
----------------------------------------------------------------------------------
-local function setupForm2()
-	setupFormTable(1)
-end
-
----------------------------------------------------------------------------------
-local function setupForm3()
-	setupFormTable(2)
-end
-
----------------------------------------------------------------------------------
-local function setupForm(id)
-	formID = id
-
-	if (formID == 1) then
-		setupForm1()
-	elseif (formID == 2) then
-		setupForm2()
-	elseif (formID == 3) then
-		setupForm3()
-	end
-
-	form.setButton(1, "O", formID == 1 and HIGHLIGHTED or ENABLED)
-	form.setButton(2, "1", formID == 2 and HIGHLIGHTED or ENABLED)
-	form.setButton(3, "2", formID == 3 and HIGHLIGHTED or ENABLED)
-
-	if (formID == 1) then
-		form.setButton(4, "S", timeB4 and HIGHLIGHTED or config:len() > 0 and ENABLED or DISABLED)
-		form.setButton(5, "L", timeB5 and HIGHLIGHTED or config:len() > 0 and ENABLED or DISABLED)
-	else
-		form.setButton(4, ":up",   timeB4 and HIGHLIGHTED or ENABLED)
-		form.setButton(5, ":down", timeB5 and HIGHLIGHTED or ENABLED)
-	end
-end
-
----------------------------------------------------------------------------------
 local function toBytes(text)
 	local result = ""
 	local sign, id
@@ -508,74 +114,9 @@ local function toString(bytes)
 	return result
 end
 
----------------------------------------------------------------------------------
-local function saveConfig()
-  local saved
-  
-	if (neuerName:len() > 0) then config = neuerName  end
-	if (config:len() > 0) then
-		local file = io.open(folder..config, "w+")
-		if (file) then
-			local row = ""
-			local column = ""
-			local font = ""
-			local frame = ""
-			local align = ""
-			local text = ""
-			local space = " "
-			local line = "\n"
-
-			for w=1, windows do
-				if (w > 1) then
-					row    = row..space
-					column = column..space
-					font   = font..space
-					frame  = frame..space
-					align  = align..space
-					text   = text..space
-				end
-
-				row    = row..rows[w]
-				column = column..columns[w]
-				font   = font..fonts[w]
-				frame  = frame..(frames[w] and 1 or 0)
-				align  = align..(aligns[w] and 1 or 0)
-
-				for i=1, rows[w] do
-					if (i > 1) then
-						text = text..space
-					end
-					for j=1, columns[w] do
-						if (j > 1) then
-							text = text..space
-						end
-						text = text.."\""..toBytes(texts[w][i][j]).."\""
-					end
-				end
-			end
-
-			io.write(file, row..line)
-			io.write(file, column..line)
-			io.write(file, text..line)
-			io.write(file, font..line)
-			io.write(file, frame..line)
-			io.write(file, align..line)
-			io.close(file)
-
-			config = ""
-			system.pSave("config", config)
-
-			saved = system.getTimeCounter()
-		end
-	end
-end
-
----------------------------------------------------------------------------------
-local function loadConfig()
+local function loadtxtConfig(filename)
   local loaded
-  
-	if (config:len() > 4) then
-		local file = io.open(folder..config, "r")
+		local file = io.open(folder..filename, "r")
 		if (file) then
 			local row = {}
 			local column = {}
@@ -727,10 +268,489 @@ local function loadConfig()
 			io.close(file)
 			loaded = system.getTimeCounter()
 		end
+	collectgarbage()
+end
+local function loadJsonConfig(filename)
+	local loaded
+	local i,j,k
+	local temp	
+	--local file = io.open(folder..model.."_NB-"..appNumber..".jsn", "r")
+	local file = io.open(folder..filename, "r")
+	if (file) then
+		for i,j in ipairs(texts) do
+			configs[i] = json.decode(io.readline(file,true))
+			fonts[i] = configs[i].fonts 
+			frames[i] = configs[i].frames
+			aligns[i] = configs[i].aligns
+			Eingabespalten[i] = configs[i].inputColumns	
+			temp = io.readline(file,true)
+			k = 0
+			while temp ~= "---" do
+				k = k + 1
+				j[k] = json.decode(temp)
+				temp = io.readline(file,true)
+			end
+			rows[i] = k
+			if k > 0 then columns[i] = #j[1] end
+		end
+		io.close(file)
+	end
+	config = ""
+	loaded = system.getTimeCounter()
+	collectgarbage()
+end
+
+local function saveJsonConfig()
+	local i,j,k,l
+	local file = io.open(folder..model.."_NB-"..appNumber..".jsn", "w+")
+	if (file) then
+		for i,j in ipairs(texts) do
+			configs[i].fonts = fonts[i]
+			configs[i].frames = frames[i]
+			configs[i].aligns = aligns[i]
+			configs[i].inputColumns = Eingabespalten[i]
+			io.write(file, json.encode(configs[i]).."\n")
+			for k,l in ipairs(j) do
+				io.write(file, json.encode(l).."\n")
+			end
+			io.write(file, "---\n")
+		end
+	io.close(file)
+	end
+	collectgarbage()
+end
+
+local function loadConfig()
+	if (config:len() > 4) then
+		if string.upper(string.sub(config,-3,-1)) == "JSN" then
+			loadJsonConfig(config)
+		end
+		if string.upper(string.sub(config,-3,-1)) == "TXT" then 
+			loadtxtConfig(config)
+			saveJsonConfig()
+		end
+	end
+	collectgarbage()		
+end
+
+
+
+local function showPage(window)
+	local r,g,b   = lcd.getBgColor()
+	local startX  = 0
+	local startY  = 1
+	local offset  = 0
+	local border  = 2
+	local font    = fontConstants[fonts[window]]
+	local height  = lcd.getTextHeight(font, "|") + border*2
+	local rows    = rows[window]
+	local columns = columns[window]
+	local texts   = texts[window]
+	
+
+	if (r+g+b)/3 > 128 then
+	    r,g,b = 0,0,0
+	else
+	    r,g,b = 255,255,255
+	end
+
+	lcd.setColor(r,g,b)
+
+	for j=1, columns do
+		local width = 0
+
+		for i=1, rows do
+			local currentWidth = lcd.getTextWidth(font, texts[i][j]) + border*2
+			if (width < currentWidth) then
+				width = currentWidth
+			end
+		end
+
+		if (j > 1) then
+			local x = startX+offset
+			if (frames[window]) then
+				lcd.drawLine(x, startY, x, startY+height*rows)
+			end
+		end
+
+		for i=1, rows do
+			local text  = texts[i][j]
+			local shift = 0
+			if (aligns[window] and tonumber(text)) then
+				shift = width - lcd.getTextWidth(font, text) - 3
+			end
+			lcd.drawText(startX+offset+border+shift, startY+height*(i-1)+border, text, font)
+		end
+
+		offset = offset + width
+	end
+
+	for i=1, rows do
+		if (i > 1) then
+			local y = startY+height*(i-1)
+			if (frames[window]) then
+				lcd.drawLine(startX, y, startX+offset, y)
+			end
+		end
+	end
+
+	if (frames[window]) then
+		lcd.drawRectangle(startX, startY, offset+1, height*rows+1)
 	end
 end
 
 ---------------------------------------------------------------------------------
+local function showPage1()
+	return showPage(1)
+end
+
+---------------------------------------------------------------------------------
+local function showPage2()
+	return showPage(2)
+end
+
+---------------------------------------------------------------------------------
+local function setupForm1()
+	for w=1, windows do
+		form.addRow(1)
+		form.addLabel({label = "Fenster "..w, font=FONT_BOLD})
+
+		form.addRow(2)
+		form.addLabel({label = "Zeilen", width=200})
+		form.addIntbox(rows[w], 1, 10, 2, 0, 1, function(value)
+			if (rows[w] < value) then
+				for i=rows[w]+1, value do
+					texts[w][i] = {}
+					for j=1, columns[w] do
+						texts[w][i][j] = defaultText
+						system.pSave("text."..w.."."..i.."."..j, defaultText)
+					end
+				end
+			else
+				for i=value+1, rows[w] do
+					texts[w][i] = nil
+					for j=1, columns[w] do
+						system.pSave("text."..w.."."..i.."."..j, nil)
+						
+					end
+				end
+			end
+			rows[w] = value
+			system.pSave("row."..w, value)
+			saveJsonConfig()
+		end)
+
+		form.addRow(2)
+		form.addLabel({label = "Spalten", width=200})
+		form.addIntbox(columns[w], 1, 10, 2, 0, 1, function(value)
+			if (columns[w] < value) then
+				for i=1, rows[w] do
+					for j=columns[w]+1, value do
+						texts[w][i][j] = defaultText
+						system.pSave("text."..w.."."..i.."."..j, defaultText)
+					end
+				end
+			else
+				for i=1, rows[w] do
+					for j=value+1, columns[w] do
+						texts[w][i][j] = nil
+						system.pSave("text."..w.."."..i.."."..j, nil)
+					end
+				end
+			end
+
+			columns[w] = value
+			system.pSave("column."..w, value)
+			if value < Eingabespalten[w] then  
+				Eingabespalten[w] = value
+				system.pSave("Eingabespalte."..w, value)
+			end
+			saveJsonConfig()
+		end)
+		
+		form.addRow(2)
+		form.addLabel({label = "Eingabespalten:", width=200})
+		
+		form.addIntbox(Eingabespalten[w],1,8,1,0,1, function(value)
+			if value > columns[w] then  value = columns[w] end
+			Eingabespalten[w] = value
+			system.pSave("Eingabespalte."..w, value)
+			saveJsonConfig()
+		end)
+		
+		form.addRow(2)
+		form.addLabel({label = "Schriftart", width=200})
+		form.addSelectbox(fontOptions, fonts[w], false, function(value)
+			fonts[w] = value
+			system.pSave("font."..w, value)
+			saveJsonConfig()
+		end)
+
+		form.addRow(2)
+		form.addLabel({label = "Umrandung", width=275})
+		frameForms[w] = form.addCheckbox(frames[w], function(value)
+			 frames[w] = not value
+			 system.pSave("frame."..w, not value and 1 or 0)
+			 form.setValue(frameForms[w], not value)
+			 saveJsonConfig()
+		end)
+
+		form.addRow(2)
+		form.addLabel({label = "Rechtsbündige Zahlen", width=275})
+		alignForms[w] = form.addCheckbox(aligns[w], function(value)
+			 aligns[w] = not value
+			 system.pSave("align."..w, not value and 1 or 0)
+			 form.setValue(alignForms[w], not value)
+			 saveJsonConfig()
+		end)
+
+		form.addSpacer(1, 7)
+	end
+
+	form.addRow(1)
+	form.addLabel({label = "Daten und Configuration Laden", font=FONT_BOLD})
+	local dateinamen = {}
+	dateinamen[1]=""
+	for name, filetype, size in dir(Ordner) do
+		if filetype == "file" then table.insert(dateinamen, name) end
+	end
+	table.sort(dateinamen)
+	form.addRow(2)
+	form.addLabel({label = "Name", width=100})
+	form.addSelectbox(dateinamen,1,false, function(value)
+		config = dateinamen[value]
+		system.pSave("config", value)
+		form.setButton(4, "Load", config:len() > 0 and ENABLED or DISABLED)
+		--form.setButton(5, "TXT", config:len() > 0 and ENABLED or DISABLED)
+	end, {width = 210})
+	-- neuerName=""
+	-- form.addRow(2)
+	-- form.addLabel({label = "Neuer Name", width=200})
+	-- form.addTextbox(neuerName, 63, function(value)
+		-- neuerName = value..extension
+		-- system.pSave("neuerName", value)
+		-- form.setButton(4, "JSN", value:len() > 0 and ENABLED or DISABLED)
+		-- form.setButton(5, "TXT", value:len() > 0 and ENABLED or DISABLED)
+	-- end)
+	form.addRow(1)
+	form.addLabel({label="Um von Zahl auf Text zu wechseln -10000 eingeben!", font=FONT_MINI, alignRight=true})
+	form.addRow(1)
+	form.addLabel({label="Beim Laden werden die aktuellen Daten überschrieben!!!", font=FONT_MINI, alignRight=true})
+	form.addRow(1)
+	form.addLabel({label="Powered by Thorn, edit by dit71 - v."..version, font=FONT_MINI, alignRight=true})
+end
+
+---------------------------------------------------------------------------------
+local function setupFormTable(window)
+	local rows = rows[window]
+	local columns = columns[window]
+	local texts = texts[window]
+	local types = {"Text", "Zahl"}
+	local Eingabespalten = Eingabespalten[window]
+	local font    = fontConstants[fonts[window]]
+	local maxBreite = {}
+	local maxBreiteEingabe = {}
+	local sortmaxBreite = {}
+	local maxBreiteRest = {}
+	local Breite
+	local minBreiteEingabe = 39.5+5*(8-Eingabespalten)
+	local offsetText = 22
+	-- local offsetInt = 27
+	local fontEingabe = FONT_NORMAL
+	local BSchirm = 316
+	local number
+	local AnzGanzeZeilen
+	local Rest
+	local k, temp
+	
+	-- maximal Breite pro Spalte
+	for j=1, columns do
+		maxBreite[j] = 0
+		for i=1, rows do
+			Breite = lcd.getTextWidth(fontEingabe, texts[i][j])
+			if Breite > maxBreite[j] then maxBreite[j] = Breite end
+		end
+		if maxBreite[j] < 1 then maxBreite[j] = 1 end
+		maxBreite[j] = maxBreite[j] + offsetText
+	end
+	-- maximal Breite pro Eingabespalte		
+	for i = 1, Eingabespalten do
+		maxBreiteEingabe[i] = 0
+		AnzGanzeZeilen = math.floor(columns/Eingabespalten)
+		for j = 1, AnzGanzeZeilen do
+			if (maxBreite[i+(j-1)*Eingabespalten] > maxBreiteEingabe[i]) then maxBreiteEingabe[i] = maxBreite[i+(j-1)*Eingabespalten] end
+		end
+		if maxBreiteEingabe[i] < 1 then maxBreiteEingabe[i] = 1 end
+		maxBreiteEingabe[i] = maxBreiteEingabe[i] + offsetText
+	end
+	
+	-- Hier nun die Breiten aufteilen, Breite = 320 Höhe = 240:
+	
+	local gesamtBreite = 0
+	for _,wert in pairs(maxBreiteEingabe) do
+		gesamtBreite = gesamtBreite + wert
+	end
+	
+	local sortmaxBreiteEingabe = {}
+	
+	for key in pairs(maxBreiteEingabe) do
+		table.insert(sortmaxBreiteEingabe, key)
+	end
+
+	table.sort(sortmaxBreiteEingabe, function(a,b)
+		return maxBreiteEingabe[a] < maxBreiteEingabe[b] end)
+		
+	BSchirm = 316
+	for  _, key in pairs(sortmaxBreiteEingabe) do
+		temp = maxBreiteEingabe[key]
+		maxBreiteEingabe[key]= temp/gesamtBreite*BSchirm
+		if maxBreiteEingabe[key] < minBreiteEingabe then maxBreiteEingabe[key] = minBreiteEingabe end
+		gesamtBreite = gesamtBreite-temp
+		BSchirm = BSchirm - maxBreiteEingabe[key]
+	end
+	
+	Rest= columns-AnzGanzeZeilen*Eingabespalten
+	if Rest > 0 then 
+		gesamtBreite = 0
+		
+		k=0
+		for j=AnzGanzeZeilen*Eingabespalten+1, columns do
+			k=k+1
+			gesamtBreite = gesamtBreite + maxBreite[j]
+			table.insert(sortmaxBreite, k)
+			table.insert(maxBreiteRest, maxBreite[j])
+		end
+
+
+		table.sort(sortmaxBreite, function(a,b)
+			return maxBreiteRest[a] < maxBreiteRest[b] end)
+			
+		BSchirm = 316
+		for  _, key in pairs(sortmaxBreite) do
+			temp = maxBreiteRest[key]
+			maxBreiteRest[key]= temp/gesamtBreite*BSchirm
+			if maxBreiteRest[key] < minBreiteEingabe then maxBreiteRest[key] = minBreiteEingabe end
+			gesamtBreite = gesamtBreite-temp
+			BSchirm = BSchirm - maxBreiteRest[key]
+		end
+	end
+	
+			
+	-- Eingabefelder anzeigen:
+	for i=1, rows do
+		-- if (i > 1) then
+			-- form.addSpacer(1, 7)
+		-- end
+
+		form.addRow(1)
+		form.addLabel({label = "Zeile "..i, font=FONT_BOLD, enabled=false})
+		local row = texts[i]
+		
+		for l=1, AnzGanzeZeilen do
+		--print ("Eingabezeite="..l)
+			form.addRow(Eingabespalten)
+			for k=1,Eingabespalten do
+				local j=((l-1)*Eingabespalten)+k
+				local stellen
+				local isText = true
+				number = tonumber(row[j])
+				if number then
+					stellen = row[j]:len()-((string.find(row[j],".",1,true)) or row[j]:len())
+					number=number*10^stellen
+					if number > -10000 and number < 10000 then
+						isText = false
+						-- if stellen>3then stellen=3 end
+						form.addIntbox(number, -10000, 9999, 0,stellen, 1, function(value)
+							value  = tostring(string.format("%."..stellen.."f",value/10^stellen))
+							row[j] = value
+							system.pSave("text."..window.."."..i.."."..j, value)
+							saveJsonConfig()
+						end, {font=fontEingabe, width=maxBreiteEingabe[k]})
+					end
+				end
+				if isText then
+					form.addTextbox(row[j], 40, function(value)
+						row[j] = value
+						--print ("i="..i.."k="..k.."j="..j)
+						system.pSave("text."..window.."."..i.."."..j, value)
+						saveJsonConfig()
+					end,{font=fontEingabe, width=maxBreiteEingabe[k]})
+				end 
+			end
+		end
+		
+		-- restliche Spalten
+		if Rest > 0 then
+			form.addRow(Rest)
+			for  k=1, #maxBreiteRest do
+				local j=(AnzGanzeZeilen*Eingabespalten)+k
+				local stellen
+				local isText = true
+				number = tonumber(row[j])
+				if number then
+					stellen = row[j]:len()-((string.find(row[j],".",1,true)) or row[j]:len())
+					number=number*10^stellen
+					if number > -10000 and number < 10000 then
+						isText = false
+						-- if stellen>3then stellen=3 end
+						form.addIntbox(number, -10000, 9999, 0,stellen, 1, function(value)
+							value  = tostring(string.format("%."..stellen.."f",value/10^stellen))
+							row[j] = value
+							system.pSave("text."..window.."."..i.."."..j, value)
+							saveJsonConfig()
+						end, {font=fontEingabe, width=maxBreiteEingabe[k]})
+					end
+				end
+				if isText then
+					form.addTextbox(row[j], 40, function(value)
+						row[j] = value
+						--print ("i="..i.."k="..k.."j="..j)
+						system.pSave("text."..window.."."..i.."."..j, value)
+						saveJsonConfig()
+					end,{font=fontEingabe, width=maxBreiteEingabe[k]})
+				end 
+			end
+		end
+			
+
+	end
+end
+
+---------------------------------------------------------------------------------
+local function setupForm2()
+	setupFormTable(1)
+end
+
+---------------------------------------------------------------------------------
+local function setupForm3()
+	setupFormTable(2)
+end
+
+---------------------------------------------------------------------------------
+local function setupForm(id)
+	formID = id
+
+	if (formID == 1) then
+		setupForm1()
+	elseif (formID == 2) then
+		setupForm2()
+	elseif (formID == 3) then
+		setupForm3()
+	end
+
+	form.setButton(1, "O", formID == 1 and HIGHLIGHTED or ENABLED)
+	form.setButton(2, "1", formID == 2 and HIGHLIGHTED or ENABLED)
+	form.setButton(3, "2", formID == 3 and HIGHLIGHTED or ENABLED)
+
+	if (formID == 1) then
+		form.setButton(4, "Load", timeB4 and HIGHLIGHTED or config:len() > 0 and ENABLED or DISABLED)
+		--form.setButton(5, "TXT", timeB5 and HIGHLIGHTED or config:len() > 0 and ENABLED or DISABLED)
+	else
+		form.setButton(4, ":up",   timeB4 and HIGHLIGHTED or ENABLED)
+		form.setButton(5, ":down", timeB5 and HIGHLIGHTED or ENABLED)
+	end
+end
+
 local function getFocusedEntry(window)
 	local line    = form.getFocusedRow()
 	local rows    = rows[window]
@@ -785,18 +805,19 @@ local function keyForm(key)
 		form.reinit(3)
 	elseif (key == KEY_4) then
 		if (formID == 1) then
-			saveConfig()
+			loadConfig()
 		else
 			moveLine(formID - 1, true)
 		end
 
 		form.reinit(formID)
 	elseif (key == KEY_5) then
-		form.preventDefault()
+		
 
-		if (formID == 1) then
-			loadConfig()
-		else
+		if not (formID == 1) then
+		--	loadConfig()
+		--else
+			form.preventDefault()
 			moveLine(formID - 1)
 		end
 
@@ -811,7 +832,7 @@ local function loop()
 		local limit = 1000
 		if (timeB4 and time - timeB4 > limit) then
 			timeB4 = nil
-			form.setButton(4, formID == 1 and "S" or ":up", formID ~= 1 and ENABLED or config:len() > 0 and ENABLED or DISABLED)
+			form.setButton(4, formID == 1 and "Load" or ":up", formID ~= 1 and ENABLED or config:len() > 0 and ENABLED or DISABLED)
 		end
 
 		if (timeB5 and time - timeB5 > limit) then
@@ -826,40 +847,44 @@ local function init()
 	pages = {showPage1, showPage2}
 	model = system.getProperty("Model") or ""
 	config = system.pLoad("config", "")
-	rows = {}
-	columns = {}
-	fonts = {}
-	frames = {}
-	aligns = {}
-	texts = {}
-	Eingabespalten = {}
+	texts[1] = {}
+	texts[2] = {}
+	configs[1] = {}
+	configs[2] = {}
 
-	for w=1, windows do
-		local r = system.pLoad("row."..w, 2)
-		local c = system.pLoad("column."..w, 2)
-
-		local win = {}
-		for i=1, r do
-			local row = {}
-			for j=1, c do
-					row[j] = system.pLoad("text."..w.."."..i.."."..j, defaultText)
+	local file = io.open(folder..model.."_NB-"..appNumber..".jsn", "r")
+	if file then
+		io.close(file)
+		loadJsonConfig(model.."_NB-"..appNumber..".jsn")
+	else
+		for w=1, windows do
+			local r = system.pLoad("row."..w, 2)
+			local c = system.pLoad("column."..w, 2)
+			local win = {}
+			for i=1, r do
+				local row = {}
+				for j=1, c do
+						row[j] = system.pLoad("text."..w.."."..i.."."..j, defaultText)
+				end
+				win[i] = row
 			end
-			win[i] = row
+			texts[w] = win
+			rows[w] = r
+			columns[w] = c
+			Eingabespalten[w] = system.pLoad("Eingabespalte."..w, 1)
+			fonts[w] = system.pLoad("font."..w, 1)
+			frames[w] = system.pLoad("frame."..w, 1) == 1 and true or false
+			aligns[w] = system.pLoad("align."..w, 1) == 1 and true or false
 		end
-		texts[w] = win
-		rows[w] = r
-		columns[w] = c
-		Eingabespalten[w] = system.pLoad("Eingabespalte."..w, 1)
-		fonts[w] = system.pLoad("font."..w, 1)
-		frames[w] = system.pLoad("frame."..w, 1) == 1 and true or false
-		aligns[w] = system.pLoad("align."..w, 1) == 1 and true or false
 	end
 
-	system.registerForm(1, MENU_APPS, "Notizbuch 1", setupForm, keyForm)
+	system.registerForm(1, MENU_APPS, appName, setupForm, keyForm)
 	for w=1, windows do
-		system.registerTelemetry(w, "Notizbuch 1 "..w.." - "..model, 4, pages[w])   -- full size Window
+		system.registerTelemetry(w, appName..w.." - "..model, 4, pages[w])   -- full size Window
 	end
+	
+	collectgarbage()
 end
 --------------------------------------------------------------------------------
 
-return {init=init, loop=loop, author="Thorn, edit by dit71", version=version, name="Notizbuch 1"}
+return {init=init, loop=loop, author="Thorn, edit by dit71", version=version, name=appName}
