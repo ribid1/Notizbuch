@@ -49,12 +49,15 @@
 				 Dies geschieht nun automatisch nach jeder Änderung der Daten oder Einstellungen, und der Dateiname wird wie folgt vergeben: Modellname_NB-appNumber.JSN
 				 Die appNumber kann untenstehend geändert werden und muss dem Dateinamen der App entsprechen, z.Bsp: bei Notizbuch7.lua muss die appNumber = 7 sein.
 				 Es können sowohl die neuen JSN Dateien als auch die alten txt Dateien geladen werden.
+	Version 1.6: Die Sicherungsdateien werden sofort nach Import einer txt Datei erstellt.
+	Version 1.7: Zeilenhöhe gleichmäßig aufgeteilt und zentriert
 	
 	https://github.com/ribid1/Notizbuch
 
 --]]--------------------------------------------------------------------------------
 local appNumber = "2"     -- Hier die Nummer antsprechend des Dateinamens abändern
-local model, config, pages, formID, timeB4, timeB5, neuerName
+local model, pages, formID, timeB4, timeB5, neuerName
+local config = ""
 local windows = 2
 local fontOptions = {"Mini", "Normal", "Bold", "Maxi"}
 local fontConstants = {FONT_MINI, FONT_NORMAL, FONT_BOLD, FONT_MAXI}
@@ -74,7 +77,7 @@ local folder = "Apps/Notizbuch/"
 local Ordner = "Apps/Notizbuch"
 local extension = ".txt"
 local appName = "Notizbuch "..appNumber
-local version = "1.6"
+local version = "1.7"
 
 --------------------------------------------------------------------------------
 local function toBytes(text)
@@ -262,38 +265,45 @@ local function loadtxtConfig(filename)
 			aligns = align
 			texts = text
 
-			config = ""
-			system.pSave("config", config)
-
 			io.close(file)
+			config = ""
 			loaded = system.getTimeCounter()
 		end
 	collectgarbage()
 end
 local function loadJsonConfig(filename)
 	local loaded
-	local i,j,k
+	local i,j,k,l,m
 	local temp	
-	--local file = io.open(folder..model.."_NB-"..appNumber..".jsn", "r")
 	local file = io.open(folder..filename, "r")
 	if (file) then
 		for i,j in ipairs(texts) do
 			configs[i] = json.decode(io.readline(file,true))
 			fonts[i] = configs[i].fonts 
+			system.pSave("font."..i, fonts[i])
 			frames[i] = configs[i].frames
+			system.pSave("frame."..i, frames[i] and 1 or 0)
 			aligns[i] = configs[i].aligns
+			system.pSave("align."..i, aligns[i] and 1 or 0)
 			Eingabespalten[i] = configs[i].inputColumns	
+			system.pSave("Eingabespalte."..i, Eingabespalten[i])
 			temp = io.readline(file,true)
 			k = 0
 			while temp ~= "---" do
 				k = k + 1
 				j[k] = json.decode(temp)
+				for l,m in ipairs(j[k]) do
+					system.pSave("text."..i.."."..k.."."..l, m)
+				end				
 				temp = io.readline(file,true)
 			end
 			rows[i] = k
+			system.pSave("row."..i, rows[i])
 			if k > 0 then columns[i] = #j[1] end
+			system.pSave("column."..i, columns[i])
 		end
 		io.close(file)
+
 	end
 	config = ""
 	loaded = system.getTimeCounter()
@@ -324,6 +334,7 @@ local function loadConfig()
 	if (config:len() > 4) then
 		if string.upper(string.sub(config,-3,-1)) == "JSN" then
 			loadJsonConfig(config)
+			saveJsonConfig()
 		end
 		if string.upper(string.sub(config,-3,-1)) == "TXT" then 
 			loadtxtConfig(config)
@@ -333,21 +344,31 @@ local function loadConfig()
 	collectgarbage()		
 end
 
-
-
 local function showPage(window)
 	local r,g,b   = lcd.getBgColor()
 	local startX  = 0
-	local startY  = 1
 	local offset  = 0
 	local border  = 2
 	local font    = fontConstants[fonts[window]]
-	local height  = lcd.getTextHeight(font, "|") + border*2
+	local heightmin  = lcd.getTextHeight(font, "|")-2
+	local heightmax  = math.floor(heightmin * 2.5)
 	local rows    = rows[window]
 	local columns = columns[window]
 	local texts   = texts[window]
-	
+	local height  = math.floor(158/rows)
+	local startY = 1
+	local rest = 0
+	if height < heightmin then
+		height = heightmin
+	elseif height > heightmax then 
+		height = heightmax 
+		startY  = math.floor((159 - height * rows)/2)
+	else
+		rest = 157-height*rows
+	end
 
+	local yText = math.floor((height-heightmin)/2)
+	
 	if (r+g+b)/3 > 128 then
 	    r,g,b = 0,0,0
 	else
@@ -369,7 +390,7 @@ local function showPage(window)
 		if (j > 1) then
 			local x = startX+offset
 			if (frames[window]) then
-				lcd.drawLine(x, startY, x, startY+height*rows)
+				lcd.drawLine(x, startY, x, startY+height*rows+rest) -- vertikal
 			end
 		end
 
@@ -379,23 +400,34 @@ local function showPage(window)
 			if (aligns[window] and tonumber(text)) then
 				shift = width - lcd.getTextWidth(font, text) - 3
 			end
-			lcd.drawText(startX+offset+border+shift, startY+height*(i-1)+border, text, font)
+			local yt
+			if i<=rest then 
+				yt = startY+(height+1)*(i-1)+yText
+			else
+				yt = startY+height*(i-1)+yText+rest
+			end	
+			lcd.drawText(startX+offset+border+shift, yt, text, font)
 		end
 
 		offset = offset + width
 	end
 
-	for i=1, rows do
-		if (i > 1) then
-			local y = startY+height*(i-1)
-			if (frames[window]) then
-				lcd.drawLine(startX, y, startX+offset, y)
-			end
+	for i=1, rows-1 do
+		
+		local y
+		if i<=rest then 
+			y = startY+(height+1)*i
+		else
+			y = startY+height*i+rest
+		end			
+		if (frames[window]) then
+			lcd.drawLine(startX, y, startX+offset, y)  --horizontal
 		end
+
 	end
 
 	if (frames[window]) then
-		lcd.drawRectangle(startX, startY, offset+1, height*rows+1)
+		lcd.drawRectangle(startX, startY, offset+1,height*rows+rest+1)
 	end
 end
 
@@ -417,7 +449,7 @@ local function setupForm1()
 
 		form.addRow(2)
 		form.addLabel({label = "Zeilen", width=200})
-		form.addIntbox(rows[w], 1, 10, 2, 0, 1, function(value)
+		form.addIntbox(rows[w], 1, 13, 2, 0, 1, function(value)
 			if (rows[w] < value) then
 				for i=rows[w]+1, value do
 					texts[w][i] = {}
@@ -519,7 +551,6 @@ local function setupForm1()
 	form.addLabel({label = "Name", width=100})
 	form.addSelectbox(dateinamen,1,false, function(value)
 		config = dateinamen[value]
-		system.pSave("config", value)
 		form.setButton(4, "Load", config:len() > 0 and ENABLED or DISABLED)
 		--form.setButton(5, "TXT", config:len() > 0 and ENABLED or DISABLED)
 	end, {width = 210})
@@ -744,7 +775,6 @@ local function setupForm(id)
 
 	if (formID == 1) then
 		form.setButton(4, "Load", timeB4 and HIGHLIGHTED or config:len() > 0 and ENABLED or DISABLED)
-		--form.setButton(5, "TXT", timeB5 and HIGHLIGHTED or config:len() > 0 and ENABLED or DISABLED)
 	else
 		form.setButton(4, ":up",   timeB4 and HIGHLIGHTED or ENABLED)
 		form.setButton(5, ":down", timeB5 and HIGHLIGHTED or ENABLED)
@@ -846,7 +876,6 @@ end
 local function init()
 	pages = {showPage1, showPage2}
 	model = system.getProperty("Model") or ""
-	config = system.pLoad("config", "")
 	texts[1] = {}
 	texts[2] = {}
 	configs[1] = {}
