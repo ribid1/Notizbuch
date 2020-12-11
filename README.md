@@ -10,7 +10,8 @@ Version 1.5: Zur besseren Les- und Editierbarkeit mittels Texteditor werden die 
 				 Die appNumber kann untenstehend geändert werden und muss dem Dateinamen der App entsprechen, z.Bsp: bei Notizbuch7.lua muss die appNumber = 7 sein.
 				 Es können sowohl die neuen JSN Dateien als auch die alten txt Dateien geladen werden. 
          
-Version 1.6: Die Sicherungsdateien werden sofort nach Import einer txt Datei erstellt.
+Version 1.6: Die Sicherungsdateien werden sofort nach Import einer txt Datei erstellt.  
+Version 1.7: Zeilenhöhe gleichmäßig aufgeteilt und zentriert
 
 Die App kann auch sehr gut dazu verwendet werden um sich die Einstellungen eines Flybareless Systems,
 welches keine Jeti Integration besitzt,
