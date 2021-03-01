@@ -11,7 +11,7 @@ Version 1.5: Zur besseren Les- und Editierbarkeit mittels Texteditor werden die 
 				 Es können sowohl die neuen JSN Dateien als auch die alten txt Dateien geladen werden. 
          
 Version 1.6: Die Sicherungsdateien werden sofort nach Import einer txt Datei erstellt.  
-Version 1.7: Zeilenhöhe gleichmäßig aufgeteilt und zentriert  
+Version 1.7: Anzahl der max. Zeilen auf 13 erhöht. Die Zeilenhöhe gleichmäßig aufgeteilt und die Anzeige zentriert  
 Version 1.8: Bei Änderung der Zeilen- und Spaltenanzahl bleiben die Werte erhalten werden aber nicht angezeigt um ein unabsichtliches Löschen zu vermeiden.  
 
 
