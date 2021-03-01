@@ -1,0 +1,24 @@
+{"inputColumns":2,"fonts":1,"frames":true,"aligns":true}
+["spezifische Drehzahl U\/V:","4100","Cyclic Ring","90"]
+["Polzahl","6","Rettungspitch","65"]
+["z Ritzel","11","Ch1","-18"]
+["z Hauptzahnrad","140","Ch2","-12"]
+["z Freilauf","59","Ch3","-15"]
+["z Heck","16","Max. pos. Pitch","103"]
+["Motor:Hauptrotor","12.73","Max. neg. Pitch","101"]
+["Heck:Hauptrotor","3.69","Zyklisch","93"]
+["","","Heck Links","122"]
+["Datum","","Heck rechts","90"]
+---
+{"inputColumns":1,"fonts":1,"frames":true,"aligns":true}
+["",""]
+["",""]
+["",""]
+["",""]
+["",""]
+["",""]
+["",""]
+["",""]
+["",""]
+["",""]
+---

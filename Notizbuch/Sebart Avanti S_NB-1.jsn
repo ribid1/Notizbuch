@@ -1,0 +1,22 @@
+{"frames":true,"fonts":1,"inputColumns":2,"columns":2,"rows":9,"aligns":true}
+["Fahrwerk","SJ"]
+["Klappen","5"]
+["Flugphase","SB"]
+["Turbine","SG"]
+["Spannungsabfall","0.3V"]
+["Pumpenfaktor","200"]
+["Empf-Akku","1300mAh"]
+["T-Akku","2700mAh"]
+["",""]
+---
+{"frames":true,"fonts":1,"inputColumns":3,"columns":3,"rows":9,"aligns":true}
+["QR re","-26.4","28.7"]
+["QR li","-26.4","28.7"]
+["Seite","",""]
+["Höhe","-28.5","28.5"]
+["Klappen","-20","-50"]
+["","",""]
+["","",""]
+["","",""]
+["","",""]
+---

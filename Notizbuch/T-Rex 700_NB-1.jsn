@@ -1,0 +1,25 @@
+{"inputColumns":4,"frames":true,"columns":8,"aligns":true,"fonts":1,"rows":11}
+["TS Style","110","","","Drehzahl","1650","1780","2000"]
+["TS Wendigkeit","106","","","Regler Empf","30","",""]
+["TS Empf","80","75","70","AR Gas","10","",""]
+["Nick Pre","10","","","Basisgas","56","69","80"]
+["Paddel Sim","0","","","Gas min","20","",""]
+["Heli Groesse","50","","","Pitch Zugabe","10","10","10"]
+["TS Integral","60","","","Zykl. Zugabe","4","4","4"]
+["Pitch Pump","0","","","Regler Integral","20","",""]
+["Expo","25","","","P Limit+","20","",""]
+["Pitch Anp","35","","","P Limit-","20","",""]
+["Lightness","0","","","Zykl Opt","58","56","54"]
+---
+{"inputColumns":4,"frames":true,"columns":8,"aligns":true,"fonts":1,"rows":10}
+["Heck Drehrate","100","","","Heck Empf","95","84","72"]
+["Beschl","55","","","Nullpitch","0","",""]
+["P Anteil","80","","","Stop Gain A","40","",""]
+["D Anteil","0","","","Stop Gain B","10","",""]
+["I Anteil","60","","","Heck Opt A","18","10","22"]
+["I Limit","-1","","","Heck Opt B","33","35","26"]
+["I Entladung","-1","","","Autotrim RNH","-5","-13","26"]
+["Wag Sup","0","","","","","",""]
+["Expo","30","","","","","",""]
+["DMA Pitch","65","60","55","DMA Zykl","22","20","18"]
+---
