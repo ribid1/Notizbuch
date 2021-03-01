@@ -1,6 +1,0 @@
-9 9
-2 3
-"Fahrwerk" "SJ" "Klappen" "5" "Flugphase" "SB" "Turbine" "SG" "Spannungsabfall" "0.3V" "Pumpenfaktor" "250" "Empf-Akku" "1300mAh" "T-Akku" "2700mAh" "" "" "QR re" "-26.4" "28.7" "QR li" "-26.4" "28.7" "Seite" "" "" "H[195][182]he" "-28.5" "28.5" "Klappen" "-20" "-50" "" "" "" "" "" "" "" "" "" "" "" ""
-1 1
-1 1
-1 1

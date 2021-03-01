@@ -1,6 +1,0 @@
-10 10
-8 8
-"TS Style" "110" "" "" "Drehzahl" "1660" "1800" "2000" "TS Wendigkeit" "106" "" "" "Regler Empf" "40" "" "" "TS Empf" "80" "75" "70" "AR Gas" "10" "" "" "Nick Pre" "10" "" "" "Basisgas" "56" "69" "80" "Paddel Sim" "0" "" "" "Gas min" "20" "" "" "Heli Groesse" "50" "" "" "Pitch Zugabe" "30" "25" "20" "TS Integral" "60" "" "" "Zykl. Zugabe" "10" "8" "7" "Pitch Pump" "0" "" "" "Regler Integral" "20" "" "" "Expo" "25" "" "" "P Limit+" "20" "" "" "Pitch Anp" "35" "" "" "P Limit-" "20" "" "" "Heck Drehrate" "100" "" "" "Heck Empf" "116" "96" "82" "Beschl" "55" "" "" "Nullpitch" "0" "" "" "P Anteil" "80" "" "" "D Anteil" "0" "" "" "I Anteil" "60" "" "" "I Limit" "-1" "" "" "I Entladung" "-1" "" "" "Expo" "50" "" "" "DMA Pitch" "65" "60" "55" "DMA Zykl" "22" "20" "18" "Stop Gain A" "40" "" "" "Stop Gain B" "10" "" "" "Heck Opt A" "12" "23" "15" "Heck Opt B" "43" "35" "25" "Zykl Opt" "58" "56" "54" "Autotrim Roll" "-2" "" "" "Autotrim Nick" "-3" "" "" "Autotrim Heck" "24" "" ""
-1 1
-1 1
-1 1

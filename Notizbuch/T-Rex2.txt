@@ -1,6 +1,0 @@
-10 10
-2 2
-"spezifische Drehzahl U/V:" "480" "Polzahl" "10" "z Ritzel" "12" "z Hauptzahnrad" "112" "z Freilauf" "104" "z Heck" "22" "Motor:Hauptrotor" "9.333" "Heck:Hauptrotor" "4.73" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
-1 1
-1 1
-1 1
