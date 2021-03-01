@@ -51,6 +51,7 @@
 				 Es können sowohl die neuen JSN Dateien als auch die alten txt Dateien geladen werden.
 	Version 1.6: Die Sicherungsdateien werden sofort nach Import einer txt Datei erstellt.
 	Version 1.7: Zeilenhöhe gleichmäßig aufgeteilt und zentriert
+	Version 1.8: Bei Änderung der Zeilen- und Spaltenanzahl bleiben die Werte erhalten werden aber nicht angezeigt um ein unabsichtliches Löschen zu vermeiden.
 	
 	https://github.com/ribid1/Notizbuch
 
@@ -77,7 +78,7 @@ local folder = "Apps/Notizbuch/"
 local Ordner = "Apps/Notizbuch"
 local extension = ".txt"
 local appName = "Notizbuch "..appNumber
-local version = "1.7"
+local version = "1.8"
 
 --------------------------------------------------------------------------------
 local function toBytes(text)
@@ -297,9 +298,17 @@ local function loadJsonConfig(filename)
 				end				
 				temp = io.readline(file,true)
 			end
-			rows[i] = k
+			if configs[i].rows and configs[i].rows < k then 
+				rows[i] = configs[i].rows
+			else
+				rows[i] = k
+			end
 			system.pSave("row."..i, rows[i])
-			if k > 0 then columns[i] = #j[1] end
+			if configs[i].columns and configs[i].columns < #j[1] then 
+				columns[i] = configs[i].columns
+			elseif k > 0 then 
+				columns[i] = #j[1]
+			end
 			system.pSave("column."..i, columns[i])
 		end
 		io.close(file)
@@ -319,6 +328,8 @@ local function saveJsonConfig()
 			configs[i].frames = frames[i]
 			configs[i].aligns = aligns[i]
 			configs[i].inputColumns = Eingabespalten[i]
+			configs[i].rows = rows[i]
+			configs[i].columns = columns[i]
 			io.write(file, json.encode(configs[i]).."\n")
 			for k,l in ipairs(j) do
 				io.write(file, json.encode(l).."\n")
@@ -452,20 +463,22 @@ local function setupForm1()
 		form.addIntbox(rows[w], 1, 13, 2, 0, 1, function(value)
 			if (rows[w] < value) then
 				for i=rows[w]+1, value do
-					texts[w][i] = {}
-					for j=1, columns[w] do
-						texts[w][i][j] = defaultText
-						system.pSave("text."..w.."."..i.."."..j, defaultText)
+					if not texts[w][i] then 
+						texts[w][i] = {}
+						for j=1, columns[w] do
+							texts[w][i][j] = defaultText
+							system.pSave("text."..w.."."..i.."."..j, defaultText)
+						end
 					end
 				end
-			else
-				for i=value+1, rows[w] do
-					texts[w][i] = nil
-					for j=1, columns[w] do
-						system.pSave("text."..w.."."..i.."."..j, nil)
+			-- else
+				-- for i=value+1, rows[w] do
+					-- texts[w][i] = nil
+					-- for j=1, columns[w] do
+						-- system.pSave("text."..w.."."..i.."."..j, nil)
 						
-					end
-				end
+					-- end
+				-- end
 			end
 			rows[w] = value
 			system.pSave("row."..w, value)
@@ -478,17 +491,19 @@ local function setupForm1()
 			if (columns[w] < value) then
 				for i=1, rows[w] do
 					for j=columns[w]+1, value do
-						texts[w][i][j] = defaultText
-						system.pSave("text."..w.."."..i.."."..j, defaultText)
+						if not texts[w][i][j] then 
+							texts[w][i][j] = defaultText 
+							system.pSave("text."..w.."."..i.."."..j, defaultText)
+						end
 					end
 				end
-			else
-				for i=1, rows[w] do
-					for j=value+1, columns[w] do
-						texts[w][i][j] = nil
-						system.pSave("text."..w.."."..i.."."..j, nil)
-					end
-				end
+			-- else
+				-- for i=1, rows[w] do
+					-- for j=value+1, columns[w] do
+						-- texts[w][i][j] = nil
+						-- system.pSave("text."..w.."."..i.."."..j, nil)
+					-- end
+				-- end
 			end
 
 			columns[w] = value
